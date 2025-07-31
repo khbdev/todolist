@@ -7,6 +7,7 @@ type Profile struct {
 	LastName  string
 	Username  string
 	Image     string
+	User      *User `gorm:"foreignKey:UserID"` // 🔥 mana shu qator qo‘shilsin
 
 	
 }

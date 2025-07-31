@@ -6,4 +6,5 @@ type Profile struct {
 	LastName  string `json:"lastname" validate:"required,min=2,max=50"`
 	Username  string `json:"username" validate:"required,alphanum,min=3,max=30"`
 	Image     string `json:"image" validate:"omitempty,url"`
+	User      *User // 🔥 Yangi qo‘shiladi
 }

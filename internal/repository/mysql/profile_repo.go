@@ -29,7 +29,7 @@ func (r *ProfileRepo) CreateProfile(userID int, profile *domain.Profile) error {
 
 func (r *ProfileRepo) GetProfileByUserID(userID int) (*domain.Profile, error) {
 	var profile models.Profile
-	err := r.db.Where("user_id = ?", userID).First(&profile).Error
+	err := r.db.Preload("User").Where("user_id = ?", userID).First(&profile).Error
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +40,13 @@ func (r *ProfileRepo) GetProfileByUserID(userID int) (*domain.Profile, error) {
 		LastName:  profile.LastName,
 		Username:  profile.Username,
 		Image:     profile.Image,
+		User: &domain.User{
+			ID:    int(profile.User.ID),
+			Email: profile.User.Email,
+		},
 	}, nil
 }
+
 
 func (r *ProfileRepo) UpdateProfile(userID int, profile *domain.Profile) error {
 	return r.db.Model(&models.Profile{}).
