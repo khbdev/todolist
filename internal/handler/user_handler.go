@@ -9,57 +9,52 @@ import (
 )
 
 type UserHandler struct {
-    userUsecase *usecase.UserUsecase
+	userUsecase *usecase.UserUsecase
 }
 
-func NewUserHandler(usecase *usecase.UserUsecase) *UserHandler {
-    return &UserHandler{userUsecase: usecase}
+func NewUserHandler(uc *usecase.UserUsecase) *UserHandler {
+	return &UserHandler{userUsecase: uc}
 }
 
 func (h *UserHandler) Register(c *gin.Context) {
-    var user struct {
-        Email    string `json:"email" binding:"required,email"`
-        Password string `json:"password" binding:"required,min=6"`
-    }
+	var req struct {
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=6"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, err.Error(), 400)
+		return
+	}
 
-    if err := c.ShouldBindJSON(&user); err != nil {
-        response.Error(c, err.Error(), 400)
-        return
-    }
-
-   domainUser := &domain.User{
-    Email:    user.Email,
-    Password: user.Password, // ✅ Password qo‘shildi
-}
-
-    if err := h.userUsecase.Register(domainUser); err != nil {
-        response.Error(c, "Registration failed", 500)
-        return
-    }
-
-    response.Success(c, domainUser)
+	user := &domain.User{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+	if err := h.userUsecase.Register(user); err != nil {
+		response.Error(c, "Ro‘yxatdan o‘tishda xatolik", 500)
+		return
+	}
+	response.Success(c, user)
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
-    var req struct {
-        Email    string `json:"email" binding:"required,email"`
-        Password string `json:"password" binding:"required,min=6"`
-    }
+	var req struct {
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=6"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, err.Error(), 400)
+		return
+	}
 
-    if err := c.ShouldBindJSON(&req); err != nil {
-        response.Error(c, err.Error(), 400)
-        return
-    }
+	user, token, err := h.userUsecase.Login(req.Email, req.Password)
+	if err != nil {
+		response.Error(c, "Email yoki parol xato", 401)
+		return
+	}
 
-    user, token, err := h.userUsecase.Login(req.Email, req.Password)
-    if err != nil {
-        response.Error(c, "Invalid email or password", 401)
-        return
-    }
-
-    response.Success(c, gin.H{
-        "user":  user,
-        "token": token,
-        "msg":   "Logged in successfully",
-    })
+	response.Success(c, gin.H{
+		"user":  user,
+		"token": token,
+	})
 }
