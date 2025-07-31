@@ -1,45 +1,46 @@
+// mysql/user_repo.go
 package mysql
 
 import (
-	"database/sql"
 	"todolist/internal/domain"
+	"todolist/internal/repository/models"
+
+	"gorm.io/gorm"
 )
 
-type UserRepo struct{
-	db *sql.DB
+type UserRepo struct {
+	db *gorm.DB
 }
 
-
-func NewUserRepo(db *sql.DB) domain.UserRepository {
-    return &UserRepo{db: db}
+func NewUserRepo(db *gorm.DB) domain.UserRepository {
+	return &UserRepo{db: db}
 }
 
 func (r *UserRepo) CreateUser(user *domain.User) error {
-	query := `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`
-	result, err := r.db.Exec(query, user.Username, user.Email, user.Password)
-	if err != nil {
-		return err
+	newUser := models.User{
+		Email:    user.Email,
+		Password: user.Password,
 	}
 
-	lastID, err := result.LastInsertId()
-	if err != nil {
-		return err
+	result := r.db.Create(&newUser)
+	if result.Error != nil {
+		return result.Error
 	}
 
-	user.ID = int(lastID)
+	user.ID = int(newUser.ID)
 	return nil
 }
 
-
 func (r *UserRepo) GetUserByEmail(email string) (*domain.User, error) {
-    query := `SELECT id, username, email, password FROM users WHERE email = ?`
-    row := r.db.QueryRow(query, email)
+	var user models.User
+	err := r.db.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
 
-    var user domain.User
-    err := row.Scan(&user.ID, &user.Username, &user.Email, &user.Password)
-    if err != nil {
-        return nil, err
-    }
-
-    return &user, nil
+	return &domain.User{
+		ID:       int(user.ID),
+		Email:    user.Email,
+		Password: user.Password,
+	}, nil
 }

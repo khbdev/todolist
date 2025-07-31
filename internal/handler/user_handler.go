@@ -18,7 +18,6 @@ func NewUserHandler(usecase *usecase.UserUsecase) *UserHandler {
 
 func (h *UserHandler) Register(c *gin.Context) {
     var user struct {
-        Username string `json:"username" binding:"required,min=3,max=20"`
         Email    string `json:"email" binding:"required,email"`
         Password string `json:"password" binding:"required,min=6"`
     }
@@ -29,7 +28,6 @@ func (h *UserHandler) Register(c *gin.Context) {
     }
 
    domainUser := &domain.User{
-    Username: user.Username,
     Email:    user.Email,
     Password: user.Password, // ✅ Password qo‘shildi
 }

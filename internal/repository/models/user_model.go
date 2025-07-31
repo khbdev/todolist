@@ -1,8 +1,10 @@
 package models
 
 type User struct {
-    ID       int    `db:"id"`
-    Username string `db:"username"`
-    Email    string `db:"email"`
-    Password string `db:"password"`
+	ID       uint    `gorm:"primaryKey"`
+	Email    string  `gorm:"unique;not null"`
+	Password string  `gorm:"not null"`
+
+	// ✅ One-to-One aloqasi
+	Profile  Profile `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:UserID"`
 }

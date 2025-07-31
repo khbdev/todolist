@@ -1,7 +1,6 @@
 package config
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -19,7 +18,8 @@ func LoadEnv() {
 	}
 }
 
-func ConnectDB() (*sql.DB, error) {
+// config/gorm.go (yoki shu faylga qo‘sh)
+func ConnectGormDB() (*gorm.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASS"),
@@ -28,29 +28,19 @@ func ConnectDB() (*sql.DB, error) {
 		os.Getenv("DB_NAME"),
 	)
 
-	db, err := sql.Open("mysql", dsn)
+	gormDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	log.Println("✅ GORM DB muvaffaqiyatli ulandi")
+	return gormDB, nil
 }
 
+
 // 🔽 GORM bilan faqat migratsiya qilish
-func AutoMigrate(db *sql.DB, models ...interface{}) error {
-	gormDB, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: db,
-	}), &gorm.Config{})
-
-	if err != nil {
-		return err
-	}
-
-	err = gormDB.AutoMigrate(models...)
+func AutoMigrate(db *gorm.DB, models ...interface{}) error {
+	err := db.AutoMigrate(models...)
 	if err != nil {
 		return err
 	}

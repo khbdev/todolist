@@ -9,48 +9,66 @@ import (
 )
 
 type UserUsecase struct {
-    userRepo domain.UserRepository
+	userRepo    domain.UserRepository
+	profileRepo domain.ProfileRepository // 🔥 yangi qo‘shiladi
 }
 
-func NewUserUsecase(repo domain.UserRepository) *UserUsecase {
-    return &UserUsecase{userRepo: repo}
+func NewUserUsecase(userRepo domain.UserRepository, profileRepo domain.ProfileRepository) *UserUsecase {
+	return &UserUsecase{
+		userRepo:    userRepo,
+		profileRepo: profileRepo,
+	}
 }
 
 func (u *UserUsecase) Register(user *domain.User) error {
-    // Email mavjudligini tekshiramiz
-    existingUser, err := u.userRepo.GetUserByEmail(user.Email)
-    if err == nil && existingUser != nil {
-        return errors.New("this email is already registered")
-    }
+	// 1. Email tekshiruvi
+	existingUser, err := u.userRepo.GetUserByEmail(user.Email)
+	if err == nil && existingUser != nil {
+		return errors.New("this email is already registered")
+	}
 
-    // Parolni hash qilamiz
-    hashed, err := hash.HashPassword(user.Password)
-    if err != nil {
-        return err
-    }
+	// 2. Parolni hash qilish
+	hashed, err := hash.HashPassword(user.Password)
+	if err != nil {
+		return err
+	}
+	user.Password = hashed
 
-    user.Password = hashed
-    return u.userRepo.CreateUser(user)
+	// 3. Userni yaratish
+	err = u.userRepo.CreateUser(user)
+	if err != nil {
+		return err
+	}
+
+	// 4. Bo‘sh Profile yaratish (user ID asosida)
+	profile := &domain.Profile{
+		Firstname: "",
+		LastName:  "",
+		Username:  "",
+		Image:     "",
+	}
+	err = u.profileRepo.CreateProfile(user.ID, profile)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-
-
 func (u *UserUsecase) Login(email, password string) (*domain.User, string, error) {
-    user, err := u.userRepo.GetUserByEmail(email)
-    if err != nil {
-        return nil, "", err
-    }
+	user, err := u.userRepo.GetUserByEmail(email)
+	if err != nil {
+		return nil, "", err
+	}
 
-    if !hash.CheckPassword(password, user.Password) {
-        return nil, "", fmt.Errorf("invalid credentials")
-    }
+	if !hash.CheckPassword(password, user.Password) {
+		return nil, "", fmt.Errorf("invalid credentials")
+	}
 
-    tokenStr, err := token.GenerateToken(16)
-    if err != nil {
-        return nil, "", err
-    }
+	tokenStr, err := token.GenerateToken(16)
+	if err != nil {
+		return nil, "", err
+	}
 
-    // Optional: tokenni DBga saqlash yoki cache’ga
-
-    return user, tokenStr, nil
+	return user, tokenStr, nil
 }

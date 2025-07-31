@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	"todolist/internal/config"
-	"todolist/internal/domain"
 	"todolist/internal/handler"
+	"todolist/internal/repository/models"
 	"todolist/internal/repository/mysql"
 	"todolist/internal/usecase"
 
@@ -12,27 +12,29 @@ import (
 )
 
 
-func main(){
+func main() {
 	config.LoadEnv()
 
-	db, err := config.ConnectDB()
+	db, err := config.ConnectGormDB() // ✅ to‘g‘ri nom
 	if err != nil {
-		log.Fatalf("❌ DB ulanishda xatolik: %v", err)
+		log.Fatalf("DB ulanishda xatolik: %v", err)
 	}
 
-	// 🔽 AutoMigrate
-	err = config.AutoMigrate(db, &domain.User{}) // kerakli modelni yoz
+	// ✅ AutoMigrate
+	err = config.AutoMigrate(db, &models.User{}, &models.Profile{}) // models dan
 	if err != nil {
-		log.Fatalf("❌ AutoMigrate xatolik: %v", err)
+		log.Fatalf("AutoMigrate xatolik: %v", err)
 	}
-		userRepo := mysql.NewUserRepo(db)
-	userUsecase := usecase.NewUserUsecase(userRepo)
+
+	userRepo := mysql.NewUserRepo(db)
+	profileRepo := mysql.NewProfileRepo(db)
+
+	userUsecase := usecase.NewUserUsecase(userRepo, profileRepo)
 	userHandler := handler.NewUserHandler(userUsecase)
 
-		r := gin.Default()
+	r := gin.Default()
 	handler.SetupRoutes(r, userHandler)
 
-	// 5. Serverni ishga tushirish
-	log.Println("🚀 Server running on :8080")
+	log.Println("🚀 Server running on :8002")
 	r.Run(":8002")
 }
