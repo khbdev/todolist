@@ -32,18 +32,17 @@ func main() {
 
 	// Usecases
 	userUsecase := usecase.NewUserUsecase(userRepo, profileRepo)
-	profileUsecase := usecase.NewProfileUsecase(profileRepo) // ✅ Buni qo‘sh
+	profileUsecase := usecase.NewProfileUsecase(profileRepo) 
 
 	// Handlers
 	userHandler := handler.NewUserHandler(userUsecase)
-	profileHandler := handler.NewProfileHandler(profileUsecase) // ✅ Buni qo‘sh
+	profileHandler := handler.NewProfileHandler(profileUsecase) 
 
 	// Gin
 	r := gin.Default()
 
 	// Routes
 	handler.SetupRoutes(r, userHandler, profileHandler, userUsecase)
- // ✅ Endi to‘g‘ri 3 ta argument bor
 
 	log.Println("🚀 Server running on :8002")
 	r.Run(":8002")
