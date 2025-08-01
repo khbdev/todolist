@@ -9,12 +9,14 @@ import (
 type UserUsecase struct {
 	userRepo    domain.UserRepository
 	profileRepo domain.ProfileRepository
+	settingRepo domain.SettingRepository
 }
 
-func NewUserUsecase(userRepo domain.UserRepository, profileRepo domain.ProfileRepository) *UserUsecase {
+func NewUserUsecase(userRepo domain.UserRepository, profileRepo domain.ProfileRepository,settingRepo domain.SettingRepository ) *UserUsecase {
 	return &UserUsecase{
 		userRepo:    userRepo,
 		profileRepo: profileRepo,
+		settingRepo: settingRepo,
 	}
 }
 
@@ -42,6 +44,14 @@ func (uc *UserUsecase) Register(user *domain.User) error {
 	if err != nil {
 		return err
 	}
+	setting := &domain.Setting{
+		BgColor: "#FFD701",
+		TextColor: "#FFD700",
+	}
+	err = uc.settingRepo.CreateSetting(user.ID, setting)
+if err != nil {
+	return err
+}
 
 	return nil
 }
