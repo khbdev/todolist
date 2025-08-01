@@ -2,12 +2,10 @@ package models
 
 type Profile struct {
 	ID        uint   `gorm:"primaryKey"`
-	UserID    uint   `gorm:"uniqueIndex"` // Har bir foydalanuvchiga bitta profil
-	Firstname string
-	LastName  string
-	Username  string
-	Image     string
-	User      *User `gorm:"foreignKey:UserID"` // 🔥 mana shu qator qo‘shilsin
-
-	
+	UserID    uint   `gorm:"uniqueIndex"`
+	Firstname string `gorm:"column:firstname"`
+	LastName  string `gorm:"column:lastname"` // 👈 shu joy muhim!
+	Username  string `gorm:"column:username"`
+	Image     string `gorm:"column:image"`
+	User      *User  `gorm:"foreignKey:UserID"`
 }
