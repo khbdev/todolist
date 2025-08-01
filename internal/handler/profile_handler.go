@@ -54,7 +54,7 @@ func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
         return
     }
 
-    // ❗️formni uzatamiz, hech qanday fayl saqlash yo‘q
+
     updatedProfile, err := h.profileUC.UpdateProfileUsecase(userID, c.Request.MultipartForm)
     if err != nil {
         response.Error(c, "Yangilashda xatolik: "+err.Error(), http.StatusInternalServerError)

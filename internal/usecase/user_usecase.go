@@ -25,16 +25,13 @@ func (uc *UserUsecase) Register(user *domain.User) error {
 	}
 	user.Token = tok
 
-	// 1. Foydalanuvchini yaratamiz
+
 	err = uc.userRepo.CreateUser(user)
 	if err != nil {
 		return err
 	}
 
-	// 2. User ID avtomatik shakllanmagan bo‘lsa, uni qayta olish kerak bo'lishi mumkin
-	// lekin agar `CreateUser` ichida `user.ID` set bo‘lsa, bevosita ishlatamiz:
-
-	// 3. Default profile yaratamiz (bo‘sh yoki default qiymatlar bilan)
+	
 	profile := &domain.Profile{
 		Firstname: "Azizbek",
 		LastName:  "Xasanov",

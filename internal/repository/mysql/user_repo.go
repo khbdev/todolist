@@ -25,7 +25,7 @@ func (r *UserRepo) CreateUser(user *domain.User) error {
 	if result.Error != nil {
 		return result.Error
 	}
-	user.ID = int(newUser.ID) // 🔥 Muhim qadam!
+	user.ID = int(newUser.ID) 
 	return nil
 }
 

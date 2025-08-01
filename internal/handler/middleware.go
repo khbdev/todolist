@@ -16,7 +16,7 @@ func AuthMiddleware(userUC *usecase.UserUsecase) gin.HandlerFunc {
 			return
 		}
 
-		// Bearer tokenni ajratamiz
+	
 		const bearerPrefix = "Bearer "
 		if len(authHeader) <= len(bearerPrefix) || authHeader[:len(bearerPrefix)] != bearerPrefix {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Noto‘g‘ri Authorization formati"})

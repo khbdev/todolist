@@ -18,7 +18,7 @@ func LoadEnv() {
 	}
 }
 
-// config/gorm.go (yoki shu faylga qo‘sh)
+
 func ConnectGormDB() (*gorm.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		os.Getenv("DB_USER"),
@@ -38,7 +38,7 @@ func ConnectGormDB() (*gorm.DB, error) {
 }
 
 
-// 🔽 GORM bilan faqat migratsiya qilish
+
 func AutoMigrate(db *gorm.DB, models ...interface{}) error {
 	err := db.AutoMigrate(models...)
 	if err != nil {

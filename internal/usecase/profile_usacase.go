@@ -28,7 +28,7 @@ func (up *ProfileUsecase) UpdateProfileUsecase(userID int, form *multipart.Form)
         Username:  form.Value["username"][0],
     }
 
-    // Faylni olish
+ 
     files := form.File["image"]
     if len(files) > 0 {
         fileHeader := files[0]
