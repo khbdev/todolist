@@ -10,9 +10,10 @@ type UserUsecase struct {
 	userRepo    domain.UserRepository
 	profileRepo domain.ProfileRepository
 	settingRepo domain.SettingRepository
+
 }
 
-func NewUserUsecase(userRepo domain.UserRepository, profileRepo domain.ProfileRepository,settingRepo domain.SettingRepository ) *UserUsecase {
+func NewUserUsecase(userRepo domain.UserRepository, profileRepo domain.ProfileRepository,settingRepo domain.SettingRepository) *UserUsecase {
 	return &UserUsecase{
 		userRepo:    userRepo,
 		profileRepo: profileRepo,
