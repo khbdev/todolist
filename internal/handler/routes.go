@@ -13,17 +13,19 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	userRepo := mysql.NewUserRepo(db)
 	profileRepo := mysql.NewProfileRepo(db)
 	settingRepo := mysql.NewSettingRepo(db)
+	categoryRepo := mysql.NewCategoryRepo(db)
 
 	// Usecases
 	userUsecase := usecase.NewUserUsecase(userRepo, profileRepo, settingRepo)
 	profileUsecase := usecase.NewProfileUsecase(profileRepo)
 	settingUsecase := usecase.NewSettingUsecase(settingRepo)
+	categoryUscase := usecase.NewCategoryUsecase(categoryRepo)
 
 	// Handlers
 	userHandler := NewUserHandler(userUsecase)
 	profileHandler := NewProfileHandler(profileUsecase)
 	settingHandler := NewSettingHandler(settingUsecase)
-
+	categoryHandler := NewCategoryHandler(categoryUscase)
 	// Middleware
 	authMiddleware := AuthMiddleware(userUsecase)
 
@@ -41,6 +43,12 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 
 	r.GET("/setting/", authMiddleware, settingHandler.GetSetting)
 	r.PUT("/setting/", authMiddleware, settingHandler.UpdateSetting)
+
+	r.GET("/categories", authMiddleware, categoryHandler.GetAll)
+r.POST("/categories", authMiddleware, categoryHandler.Create)
+r.GET("/categories/:id", authMiddleware, categoryHandler.GetByID)
+r.PUT("/categories/:id", authMiddleware, categoryHandler.Update)
+r.DELETE("/categories/:id", authMiddleware, categoryHandler.Delete)
 
 	r.Static("/storage/images", "pkg/storage/images")
 }

@@ -1,8 +1,9 @@
 package domain
 
-
-
-
+import (
+	"context"
+	"errors"
+)
 
 type UserRepository interface {
     CreateUser(user *User) error
@@ -26,9 +27,19 @@ type SettingRepository interface {
 
 
 type CategoryRepository interface {
-	Create(category *Category) error
-	GetByID(id int64) (*Category, error)
-	Update(category *Category) error
-	Delete(id int64) error
-	GetAllByUserID(userID int64) ([]*Category, error)
+	Create(ctx context.Context, category *Category) error
+	GetByID(ctx context.Context, id, userID int64) (*Category, error)
+	Update(ctx context.Context, category *Category) error
+	Delete(ctx context.Context, id, userID int64) error
+	GetAllByUserID(ctx context.Context, userID int64) ([]*Category, error)
 }
+
+
+
+// error uchuN
+
+
+
+var (
+	ErrCategoryNameRequired = errors.New("category name is required")
+)

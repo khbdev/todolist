@@ -6,7 +6,8 @@ type User struct {
     Password   string      `gorm:"not null"`
     Token      string
 
-    Profile    Profile     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:UserID"`
-    Setting    Setting     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:UserID"`
-    Categories []Category `gorm:"foreignKey:UserID"` // 👈 aloqani bildiryapti
+  Profile  Profile     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID"`
+Setting  Setting     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID"`
+Category []Category  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID"`
+
 }

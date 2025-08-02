@@ -28,5 +28,5 @@ func main() {
 	handler.SetupRoutes(r, db)
 
 	log.Println("🚀 Server running on :8002")
-	r.Run(":8002")
+	r.Run(":8001")
 }
