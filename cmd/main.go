@@ -18,7 +18,7 @@ func main() {
 		log.Fatalf("DB ulanishda xatolik: %v", err)
 	}
 
-	err = config.AutoMigrate(db, &models.User{}, &models.Profile{}, &models.Setting{})
+	err = config.AutoMigrate(db, &models.User{}, &models.Profile{}, &models.Setting{}, &models.Category{})
 	if err != nil {
 		log.Fatalf("AutoMigrate xatolik: %v", err)
 	}

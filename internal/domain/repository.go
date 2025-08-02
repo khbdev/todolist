@@ -25,3 +25,10 @@ type SettingRepository interface {
 }
 
 
+type CategoryRepository interface {
+	Create(category *Category) error
+	GetByID(id int64) (*Category, error)
+	Update(category *Category) error
+	Delete(id int64) error
+	GetAllByUserID(userID int64) ([]*Category, error)
+}

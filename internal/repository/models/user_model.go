@@ -8,5 +8,5 @@ type User struct {
 
     Profile    Profile     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:UserID"`
     Setting    Setting     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:UserID"`
-    Categories []Category  `gorm:"foreignKey:UserID"`
+    Categories []Category `gorm:"foreignKey:UserID"` // 👈 aloqani bildiryapti
 }
