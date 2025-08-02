@@ -35,6 +35,13 @@ type CategoryRepository interface {
 }
 
 
+type TodoRepository interface {
+    CreateTodo(todo Todo) (int64, error)
+    GetTodoByID(id int64) (*Todo, error)
+    GetTodosByUserID(userID int64) ([]Todo, error)
+    UpdateTodo(todo Todo) error
+    DeleteTodo(id int64) error
+}
 
 // error uchuN
 

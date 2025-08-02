@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 	"todolist/internal/config"
+	"todolist/internal/domain"
 	"todolist/internal/handler"
 	"todolist/internal/repository/models"
-
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func main() {
 		log.Fatalf("DB ulanishda xatolik: %v", err)
 	}
 
-	err = config.AutoMigrate(db, &models.User{}, &models.Profile{}, &models.Setting{}, &models.Category{})
+	err = config.AutoMigrate(db, &models.User{}, &models.Profile{}, &models.Setting{}, &models.Category{}, &domain.Todo{})
 	if err != nil {
 		log.Fatalf("AutoMigrate xatolik: %v", err)
 	}
