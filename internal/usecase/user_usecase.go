@@ -80,6 +80,22 @@ func (uc *UserUsecase) Login(email, password string) (*domain.User, string, erro
 	return user, newToken, nil
 }
 
+
+func (uc *UserUsecase) Logout(token string) error {
+	user, err := uc.userRepo.GetUserByToken(token)
+	if err != nil {
+		return err
+	}
+
+	err = uc.userRepo.UpdateToken(user.ID, "")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
 func (uc *UserUsecase) GetUserIDByToken(tok string) (int, error) {
 	user, err := uc.userRepo.GetUserByToken(tok)
 	if err != nil {

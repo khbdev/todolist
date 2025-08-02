@@ -7,7 +7,6 @@ type UserRepository interface {
 	GetUserByEmail(email string) (*User, error)
 	UpdateToken(userID int, token string) error
 	GetUserByToken(token string) (*User, error)
-
 }
 
 type ProfileRepository interface {

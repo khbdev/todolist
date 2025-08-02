@@ -24,7 +24,7 @@ func SetupRoutes(
     // Auth
     r.POST("/register", userHandler.Register)
     r.POST("/login", userHandler.Login)
-
+    r.POST("/lagout", authMiddleware, userHandler.Logout)
     // Profile
     r.GET("/profile/", authMiddleware, profileHandler.GetMyProfile)
     r.PUT("/profile/", authMiddleware, profileHandler.UpdateProfile)

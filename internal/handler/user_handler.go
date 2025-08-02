@@ -58,3 +58,32 @@ func (h *UserHandler) Login(c *gin.Context) {
 		"token": token,
 	})
 }
+
+func (h *UserHandler) Logout(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		response.Error(c, "Token yuborilmagan", 401)
+		return
+	}
+
+	// Bearer prefiksni ajratib olish
+	const prefix = "Bearer "
+	var token string
+	if len(authHeader) > len(prefix) && authHeader[:len(prefix)] == prefix {
+		token = authHeader[len(prefix):]
+	} else {
+		token = authHeader
+	}
+
+	err := h.userUsecase.Logout(token)
+	if err != nil {
+		response.Error(c, "Logout amalga oshmadi", 500)
+		return
+	}
+
+	response.Success(c, gin.H{
+		"message": "Muvaffaqiyatli chiqildi",
+	})
+}
+
+
