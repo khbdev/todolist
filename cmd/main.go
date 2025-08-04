@@ -22,11 +22,11 @@ err = config.AutoMigrate(db,
     &models.Profile{}, 
     &models.Setting{}, 
     &models.Category{}, 
-    &models.Todo{}, // ✅
+    &models.Todo{}, 
 )
 
 
-	// Hamma narsa bu yerda qilinadi, faqat router uzatiladi
+	
 	r := gin.Default()
 	handler.SetupRoutes(r, db)
 

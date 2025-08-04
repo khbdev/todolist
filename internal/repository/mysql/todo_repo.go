@@ -8,12 +8,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// todoRepository — GORM bilan ishlaydigan repository
+
 type todoRepository struct {
     db *gorm.DB
 }
 
-// NewTodoRepository — yangi repository yaratish
+
 func NewTodoRepository(db *gorm.DB) domain.TodoRepository {
     return &todoRepository{db: db}
 }

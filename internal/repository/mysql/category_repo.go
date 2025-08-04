@@ -35,7 +35,7 @@ func (r *CategoryRepo) GetByID(ctx context.Context, id, userID int64) (*domain.C
         return nil, err
     }
 
-    // Todos’ni domain modelga mapping qilish
+   
     var todos []domain.Todo
     for _, t := range model.Todos {
         todos = append(todos, domain.Todo{
