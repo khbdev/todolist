@@ -14,7 +14,7 @@ import (
 func LoadEnv() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("⚠️  .env fayl topilmadi yoki yuklanmadi")
+		log.Println(".env fayl topilmadi yoki yuklanmadi")
 	}
 }
 
@@ -33,7 +33,7 @@ func ConnectGormDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	log.Println("✅ GORM DB muvaffaqiyatli ulandi")
+	log.Println("GORM DB muvaffaqiyatli ulandi")
 	return gormDB, nil
 }
 
@@ -45,6 +45,6 @@ func AutoMigrate(db *gorm.DB, models ...interface{}) error {
 		return err
 	}
 
-	log.Println("✅ AutoMigrate muvaffaqiyatli bajarildi")
+	log.Println(" AutoMigrate muvaffaqiyatli bajarildi")
 	return nil
 }
