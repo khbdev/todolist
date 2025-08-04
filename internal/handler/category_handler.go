@@ -1,12 +1,13 @@
 package handler
 
 import (
-    "net/http"
-    "strconv"
-    "todolist/internal/domain"
-    "todolist/internal/usecase"
+	"net/http"
+	"strconv"
+	"todolist/internal/domain"
+	"todolist/internal/resource"
+	"todolist/internal/usecase"
 
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 type CategoryHandler struct {
@@ -77,7 +78,7 @@ func (h *CategoryHandler) GetByID(c *gin.Context) {
         return
     }
 
-    c.JSON(http.StatusOK, category)
+   c.JSON(http.StatusOK, resource.NewCategoryWithTodosResponse(category))
 }
 
 func (h *CategoryHandler) Update(c *gin.Context) {

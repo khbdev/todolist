@@ -27,15 +27,31 @@ func (r *CategoryRepo) Create(ctx context.Context, category *domain.Category) er
 
 func (r *CategoryRepo) GetByID(ctx context.Context, id, userID int64) (*domain.Category, error) {
     var model models.Category
+
     if err := r.db.WithContext(ctx).
+        Preload("Todos"). // bu yerda todos larni ham yuklab oladi
         Where("id = ? AND user_id = ?", id, userID).
         First(&model).Error; err != nil {
         return nil, err
     }
+
+    // Todos’ni domain modelga mapping qilish
+    var todos []domain.Todo
+    for _, t := range model.Todos {
+        todos = append(todos, domain.Todo{
+            ID:          t.ID,
+            UserID:      t.UserID,
+            CategoryID:  t.CategoryID,
+            Title:       t.Title,
+            Description: t.Description,
+        })
+    }
+
     return &domain.Category{
         ID:     model.ID,
         UserID: model.UserID,
         Name:   model.Name,
+        Todos:  todos,
     }, nil
 }
 
