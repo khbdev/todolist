@@ -1,15 +1,16 @@
-	package handler
+package handler
 
-	import (
-		"net/http"
-		"strconv"
-		"todolist/internal/domain"
-		"todolist/internal/usecase"
+import (
+	"fmt"
+	"net/http"
+	"strconv"
+	"todolist/internal/domain"
+	"todolist/internal/usecase"
 
-		"todolist/pkg/response"
+	"todolist/pkg/response"
 
-		"github.com/gin-gonic/gin"
-	)
+	"github.com/gin-gonic/gin"
+)
 
 	type TodoHandler struct {
 		usecase *usecase.TodoUsecase
@@ -46,10 +47,11 @@ func (h *TodoHandler) Create(c *gin.Context) {
 	}
 
 	var todo domain.Todo
-	if err := c.ShouldBindJSON(&todo); err != nil {
-		response.Error(c, "Noto'g'ri JSON: "+err.Error(), http.StatusBadRequest)
-		return
-	}
+if err := c.ShouldBindJSON(&todo); err != nil {
+    response.Error(c, "Noto'g'ri JSON: "+err.Error(), http.StatusBadRequest)
+    return
+}
+fmt.Println("DEBUG category_id:", todo.CategoryID)
 	todo.UserID = userID
 
 	id, err := h.usecase.CreateTodo(todo)
