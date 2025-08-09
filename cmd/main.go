@@ -28,6 +28,7 @@ err = config.AutoMigrate(db,
 
 	
 	r := gin.Default()
+	r.Use(handler.CORSMiddleware())
 	handler.SetupRoutes(r, db)
 
 	log.Println("🚀 Server running on :8002")
