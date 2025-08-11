@@ -12,34 +12,42 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-	type TodoHandler struct {
-		usecase *usecase.TodoUsecase
+type TodoHandler struct {
+	usecase *usecase.TodoUsecase
+}
+
+func NewTodoHandler(uc *usecase.TodoUsecase) *TodoHandler {
+	return &TodoHandler{usecase: uc}
+}
+
+// userID olish helper
+func getUserIDs(c *gin.Context) (int64, bool) {
+	userIDInterface, exists := c.Get("userID")
+	if !exists {
+		response.Error(c, "User aniqlanmadi", http.StatusUnauthorized)
+		return 0, false
 	}
 
-	func NewTodoHandler(uc *usecase.TodoUsecase) *TodoHandler {
-		return &TodoHandler{usecase: uc}
-	}
-
-	// userID olish helper
-	func getUserIDs(c *gin.Context) (int64, bool) {
-		userIDInterface, exists := c.Get("userID")
-		if !exists {
-			response.Error(c, "User aniqlanmadi", http.StatusUnauthorized)
-			return 0, false
-		}
-
-		switch v := userIDInterface.(type) {
-		case int:
-			return int64(v), true
-		case int64:
-			return v, true
-		case float64:
-			return int64(v), true
-		default:
+	switch v := userIDInterface.(type) {
+	case string:
+		userID, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
 			response.Error(c, "User ID noto‘g‘ri formatda", http.StatusBadRequest)
 			return 0, false
 		}
+		return userID, true
+	case int:
+		return int64(v), true
+	case int64:
+		return v, true
+	case float64:
+		return int64(v), true
+	default:
+		response.Error(c, "User ID noto‘g‘ri formatda", http.StatusBadRequest)
+		return 0, false
 	}
+}
+
 func (h *TodoHandler) Create(c *gin.Context) {
 	userID, ok := getUserIDs(c)
 	if !ok {
@@ -47,11 +55,11 @@ func (h *TodoHandler) Create(c *gin.Context) {
 	}
 
 	var todo domain.Todo
-if err := c.ShouldBindJSON(&todo); err != nil {
-    response.Error(c, "Noto'g'ri JSON: "+err.Error(), http.StatusBadRequest)
-    return
-}
-fmt.Println("DEBUG category_id:", todo.CategoryID)
+	if err := c.ShouldBindJSON(&todo); err != nil {
+		response.Error(c, "Noto'g'ri JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println("DEBUG category_id:", todo.CategoryID)
 	todo.UserID = userID
 
 	id, err := h.usecase.CreateTodo(todo)
@@ -81,7 +89,6 @@ func (h *TodoHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	// optional: todo.UserID == userID tekshirish ham qo‘shish mumkin
 	if todo.UserID != userID {
 		response.Error(c, "Ruxsat yo'q", http.StatusForbidden)
 		return
@@ -100,6 +107,11 @@ func (h *TodoHandler) GetAll(c *gin.Context) {
 	if err != nil {
 		response.Error(c, "Xatolik: "+err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Agar todos nil bo'lsa, bo'sh slice qilib qo'yamiz
+	if todos == nil {
+		todos = make([]domain.Todo, 0)
 	}
 
 	response.Success(c, todos)
@@ -151,6 +163,7 @@ func (h *TodoHandler) Delete(c *gin.Context) {
 		response.Error(c, "Topilmadi: "+err.Error(), http.StatusNotFound)
 		return
 	}
+
 	if todo.UserID != userID {
 		response.Error(c, "Ruxsat yo'q", http.StatusForbidden)
 		return

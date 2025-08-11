@@ -2,10 +2,11 @@ package handler
 
 import (
 	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"strconv"
 	"todolist/internal/domain"
 	"todolist/pkg/response"
+
+	"github.com/gin-gonic/gin"
 )
 
 type SettingHandler struct {
@@ -18,18 +19,40 @@ func NewSettingHandler(settingUC domain.SettingRepository) *SettingHandler {
 	}
 }
 
-func (h *SettingHandler) GetSetting(c *gin.Context) {
+// userID ni kontekstdan xavfsiz olish helper
+func getUserIDFromContext(c *gin.Context) (int64, bool) {
 	userIDInterface, exists := c.Get("userID")
 	if !exists {
 		response.Error(c, "Token topilmadi", http.StatusUnauthorized)
-		return
+		return 0, false
 	}
 
-	userID, ok := userIDInterface.(int)
-	if !ok {
+	switch v := userIDInterface.(type) {
+	case int:
+		return int64(v), true
+	case int64:
+		return v, true
+	case float64:
+		return int64(v), true
+	case string:
+		id, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			response.Error(c, "User ID noto‘g‘ri formatda", http.StatusInternalServerError)
+			return 0, false
+		}
+		return id, true
+	default:
 		response.Error(c, "User ID noto‘g‘ri formatda", http.StatusInternalServerError)
+		return 0, false
+	}
+}
+
+func (h *SettingHandler) GetSetting(c *gin.Context) {
+	userID64, ok := getUserIDFromContext(c)
+	if !ok {
 		return
 	}
+	userID := int(userID64) // int64 dan int ga o‘tkazish
 
 	setting, err := h.settingUC.GetSettingByUserID(userID)
 	if err != nil {
@@ -39,19 +62,12 @@ func (h *SettingHandler) GetSetting(c *gin.Context) {
 
 	response.Success(c, setting)
 }
-
 func (h *SettingHandler) UpdateSetting(c *gin.Context) {
-	userIDInterface, exists := c.Get("userID")
-	if !exists {
-		response.Error(c, "Token topilmadi", http.StatusUnauthorized)
-		return
-	}
-
-	userID, ok := userIDInterface.(int)
+	userID64, ok := getUserIDFromContext(c)
 	if !ok {
-		response.Error(c, "User ID noto‘g‘ri formatda", http.StatusInternalServerError)
 		return
 	}
+	userID := int(userID64) // int ga o‘tkazish
 
 	var setting domain.Setting
 	if err := c.ShouldBindJSON(&setting); err != nil {
@@ -67,4 +83,3 @@ func (h *SettingHandler) UpdateSetting(c *gin.Context) {
 
 	response.Success(c, "Sozlama muvaffaqiyatli yangilandi")
 }
-

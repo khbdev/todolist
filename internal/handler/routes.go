@@ -30,7 +30,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	categoryHandler := NewCategoryHandler(categoryUscase)
 	todoHandler := NewTodoHandler(todoUsecase)
 	// Middleware
-	authMiddleware := AuthMiddleware(userUsecase)
+	authMiddleware := AuthMiddleware()
 
 	// Routes
 	r.GET("/", func(c *gin.Context) {
@@ -39,6 +39,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 
 	r.POST("/register", userHandler.Register)
 	r.POST("/login", userHandler.Login)
+	r.POST("/refresh", userHandler.RefreshHandler)
 	r.POST("/logout", authMiddleware, userHandler.Logout)
 
 	r.GET("/profile/", authMiddleware, profileHandler.GetMyProfile)

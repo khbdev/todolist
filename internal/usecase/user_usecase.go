@@ -22,19 +22,13 @@ func NewUserUsecase(userRepo domain.UserRepository, profileRepo domain.ProfileRe
 }
 
 func (uc *UserUsecase) Register(user *domain.User) error {
-	tok, err := token.GenerateToken(16)
-	if err != nil {
-		return err
-	}
-	user.Token = tok
-
-
-	err = uc.userRepo.CreateUser(user)
+	// Foydalanuvchini yaratish
+	err := uc.userRepo.CreateUser(user)
 	if err != nil {
 		return err
 	}
 
-	
+	// Profile yaratish
 	profile := &domain.Profile{
 		Firstname: "Azizbek",
 		LastName:  "Xasanov",
@@ -45,41 +39,47 @@ func (uc *UserUsecase) Register(user *domain.User) error {
 	if err != nil {
 		return err
 	}
+
+	// Setting yaratish
 	setting := &domain.Setting{
-		BgColor: "#FFD701",
+		BgColor:   "#FFD701",
 		TextColor: "#FFD700",
 	}
 	err = uc.settingRepo.CreateSetting(user.ID, setting)
-if err != nil {
-	return err
-}
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
 
-func (uc *UserUsecase) Login(email, password string) (*domain.User, string, error) {
+
+
+func (uc *UserUsecase) Login(email, password string) (*domain.User, string, string, error) {
 	user, err := uc.userRepo.GetUserByEmail(email)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 	if user.Password != password {
-		return nil, "", errors.New("noto‘g‘ri parol yoki email")
+		return nil, "", "", errors.New("noto‘g‘ri parol yoki email")
 	}
 
-	newToken, err := token.GenerateToken(16)
+	// Access token yaratish
+	accessToken, err := token.GenerateJWT(user)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
-	err = uc.userRepo.UpdateToken(user.ID, newToken)
+	// Refresh token yaratish (token paketida shunday funksiya bo‘lishi kerak)
+	refreshToken, err := token.GenerateRefreshToken(user)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
-	user.Token = newToken
-	return user, newToken, nil
+	return user, accessToken, refreshToken, nil
 }
+
 
 
 func (uc *UserUsecase) Logout(token string) error {

@@ -19,7 +19,6 @@ func (r *UserRepo) CreateUser(user *domain.User) error {
 	newUser := models.User{
 		Email:    user.Email,
 		Password: user.Password,
-		Token:    user.Token,
 	}
 	result := r.db.Create(&newUser)
 	if result.Error != nil {
@@ -40,7 +39,6 @@ func (r *UserRepo) GetUserByEmail(email string) (*domain.User, error) {
 		ID:       int(user.ID),
 		Email:    user.Email,
 		Password: user.Password,
-		Token:    user.Token,
 	}, nil
 }
 
@@ -55,7 +53,6 @@ func (r *UserRepo) GetUserByToken(token string) (*domain.User, error) {
 		ID:       int(user.ID),
 		Email:    user.Email,
 		Password: user.Password,
-		Token:    user.Token,
 	}, nil
 }
 
