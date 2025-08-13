@@ -2,14 +2,33 @@ package handler
 
 import (
 	"errors"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 )
 
-var jwtSecret = []byte("todolistkhbdev101")
+var jwtSecret []byte
+
+
+func init() {
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET not set in .env file")
+	}
+
+	jwtSecret = []byte(secret)
+}
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -89,16 +108,74 @@ func AuthMiddleware() gin.HandlerFunc {
 }
 
 func CORSMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000") // frontend domeningizni yozing
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	return func(c *gin.Context) {
+		allowedOrigins := []string{
+			"http://localhost:5173",
+			"http://localhost:3000",
+			"https://3f563834a6ad.ngrok-free.app",
+		}
 
-        if c.Request.Method == http.MethodOptions {
-            c.AbortWithStatus(http.StatusOK)
+		origin := c.Request.Header.Get("Origin")
+		var allowedOrigin string
+		for _, o := range allowedOrigins {
+			if o == origin {
+				allowedOrigin = o
+				break
+			}
+		}
+
+		if allowedOrigin != "" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			c.Writer.Header().Add("Vary", "Origin")
+		}
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusOK)
+			return
+		}
+
+		c.Next()
+	}
+}
+
+
+func AdminOnly() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        authHeader := c.GetHeader("Authorization")
+        if authHeader == "" {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
+            c.Abort()
             return
         }
 
+        tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+
+        // Tokenni ParseUnverified bilan parse qilish
+        token, _, err := jwt.NewParser().ParseUnverified(tokenStr, jwt.MapClaims{})
+        if err != nil {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+            c.Abort()
+            return
+        }
+
+        claims, ok := token.Claims.(jwt.MapClaims)
+        if !ok {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid claims"})
+            c.Abort()
+            return
+        }
+
+        role, ok := claims["role"].(string)
+        if !ok || role != "admin" {
+            c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+            c.Abort()
+            return
+        }
+
+        // Hammasi to‘g‘ri bo‘lsa, route davom etadi
         c.Next()
     }
 }

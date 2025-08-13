@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"todolist/internal/admin"
 	"todolist/internal/config"
 	"todolist/internal/handler"
 	"todolist/internal/repository/models"
@@ -24,13 +25,15 @@ err = config.AutoMigrate(db,
     &models.Category{}, 
     &models.Todo{}, 
 )
-
-
+if err != nil {
+    log.Fatalf("AutoMigrate Amalga oshmadi: %v", err)
+}
+admin.CreateAdmin(db)
 	
 	r := gin.Default()
 	r.Use(handler.CORSMiddleware())
 	handler.SetupRoutes(r, db)
 
-	log.Println("🚀 Server running on :8002")
-	r.Run(":8001")
+	log.Println("🚀 Server ishga tushdi 8081")
+	r.Run(":8081")
 }

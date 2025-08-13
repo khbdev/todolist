@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"errors"
+
 	"todolist/internal/domain"
+	"todolist/pkg/hash"
 	"todolist/pkg/token"
 )
 
@@ -22,62 +24,76 @@ func NewUserUsecase(userRepo domain.UserRepository, profileRepo domain.ProfileRe
 }
 
 func (uc *UserUsecase) Register(user *domain.User) error {
-	// Foydalanuvchini yaratish
-	err := uc.userRepo.CreateUser(user)
-	if err != nil {
-		return err
-	}
+    // Agar role berilmagan bo‘lsa, default = user
+    if user.Role == "" {
+        user.Role = "user"
+    }
 
-	// Profile yaratish
-	profile := &domain.Profile{
-		Firstname: "Azizbek",
-		LastName:  "Xasanov",
-		Username:  "khbdev",
-		Image:     "rasm.jpg",
-	}
-	err = uc.profileRepo.CreateProfile(user.ID, profile)
-	if err != nil {
-		return err
-	}
+    // Parolni hash qilish
+    hashedPassword, err := hash.HashPassword(user.Password)
+    if err != nil {
+        return err
+    }
+    user.Password = hashedPassword
 
-	// Setting yaratish
-	setting := &domain.Setting{
-		BgColor:   "#FFD701",
-		TextColor: "#FFD700",
-	}
-	err = uc.settingRepo.CreateSetting(user.ID, setting)
-	if err != nil {
-		return err
-	}
+    // Foydalanuvchini yaratish
+    err = uc.userRepo.CreateUser(user)
+    if err != nil {
+        return err
+    }
 
-	return nil
+    // Profile yaratish
+    profile := &domain.Profile{
+        Firstname: "Azizbek",
+        LastName:  "Xasanov",
+        Username:  "khbdev",
+        Image:     "rasm.jpg",
+    }
+    err = uc.profileRepo.CreateProfile(user.ID, profile)
+    if err != nil {
+        return err
+    }
+
+    // Setting yaratish
+    setting := &domain.Setting{
+        BgColor:   "#FFD701",
+        TextColor: "#FFD700",
+    }
+    err = uc.settingRepo.CreateSetting(user.ID, setting)
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
 
 
 
 
 func (uc *UserUsecase) Login(email, password string) (*domain.User, string, string, error) {
-	user, err := uc.userRepo.GetUserByEmail(email)
-	if err != nil {
-		return nil, "", "", err
-	}
-	if user.Password != password {
-		return nil, "", "", errors.New("noto‘g‘ri parol yoki email")
-	}
+    user, err := uc.userRepo.GetUserByEmail(email)
+    if err != nil {
+        return nil, "", "", err
+    }
 
-	// Access token yaratish
-	accessToken, err := token.GenerateJWT(user)
-	if err != nil {
-		return nil, "", "", err
-	}
+    // Parolni tekshirish (hash bilan)
+    if !hash.CheckPassword(password, user.Password) {
+        return nil, "", "", errors.New("noto‘g‘ri parol yoki email")
+    }
 
-	// Refresh token yaratish (token paketida shunday funksiya bo‘lishi kerak)
-	refreshToken, err := token.GenerateRefreshToken(user)
-	if err != nil {
-		return nil, "", "", err
-	}
+    // Access token yaratish
+    accessToken, err := token.GenerateJWT(user)
+    if err != nil {
+        return nil, "", "", err
+    }
 
-	return user, accessToken, refreshToken, nil
+    // Refresh token yaratish
+    refreshToken, err := token.GenerateRefreshToken(user)
+    if err != nil {
+        return nil, "", "", err
+    }
+
+    return user, accessToken, refreshToken, nil
 }
 
 

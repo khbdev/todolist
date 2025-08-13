@@ -6,6 +6,7 @@ type User struct {
     Email       string     `gorm:"unique;not null"`
     Password    string     `gorm:"not null"`
     Token       string
+    Role        string
 
     Profile     Profile    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID"`
     Setting     Setting    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID"`
