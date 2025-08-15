@@ -14,7 +14,7 @@ import (
 func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	// Middleware’ni global qo‘shamiz
 	r.Use(CORSMiddleware())
-
+// end
 	// Repos
 	userRepo := mysql.NewUserRepo(db)
 	profileRepo := mysql.NewProfileRepo(db)
