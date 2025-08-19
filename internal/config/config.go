@@ -7,6 +7,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -47,4 +49,16 @@ func AutoMigrate(db *gorm.DB, models ...interface{}) error {
 
 	log.Println(" AutoMigrate muvaffaqiyatli bajarildi")
 	return nil
+
+	
+}
+
+
+func NewRedis() *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379", 
+		Password: "",             
+		DB:       0,                
+	})
+	return rdb
 }

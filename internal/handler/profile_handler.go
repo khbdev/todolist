@@ -61,7 +61,7 @@ func (h *ProfileHandler) GetMyProfile(c *gin.Context) {
 }
 
 func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
-	userID, ok := GetUserIDFromContext(c)  // bosh harf bilan chaqirish
+	userID, ok := GetUserIDFromContext(c) 
 	if !ok {
 		return
 	}
@@ -71,14 +71,15 @@ func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	updatedProfile, err := h.profileUC.UpdateProfileUsecase(userID, c.Request.MultipartForm)
+	_, err := h.profileUC.UpdateProfileUsecase(userID, c.Request.MultipartForm)
 	if err != nil {
 		response.Error(c, "Yangilashda xatolik: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// faqat message qaytarish
 	response.Success(c, gin.H{
 		"message": "Profil muvaffaqiyatli yangilandi",
-		"data":    updatedProfile,
 	})
 }
+

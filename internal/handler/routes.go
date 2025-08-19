@@ -4,8 +4,10 @@ import (
 	"net/http"
 
 	"todolist/internal/admin/handler"
+	"todolist/internal/config"
 	"todolist/internal/repository/mysql"
 	"todolist/internal/usecase"
+	"todolist/pkg/cache"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -14,10 +16,12 @@ import (
 func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	// Middleware’ni global qo‘shamiz
 	r.Use(CORSMiddleware())
+	rdb := config.NewRedis()
+	c := cache.NewCache(rdb)
 // end
 	// Repos
 	userRepo := mysql.NewUserRepo(db)
-	profileRepo := mysql.NewProfileRepo(db)
+	profileRepo := mysql.NewProfileRepo(db, c)
 	settingRepo := mysql.NewSettingRepo(db)
 	categoryRepo := mysql.NewCategoryRepo(db)
 	todoRepo := mysql.NewTodoRepository(db)
