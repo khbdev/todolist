@@ -33,12 +33,12 @@ func (r *ProfileRepo) CreateProfile(userID int, profile *domain.Profile) error {
 	return r.db.Create(&newProfile).Error
 }
 
-// GetProfileByUserID → READ-THROUGH
+
 func (r *ProfileRepo) GetProfileByUserID(userID int) (*domain.Profile, error) {
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("profile:%d", userID)
 
-	// 1️⃣ Avval cache dan qidiramiz
+
 	if data, err := r.cache.Get(ctx, cacheKey); err == nil {
 		var profile domain.Profile
 		if err := json.Unmarshal([]byte(data), &profile); err == nil {
@@ -46,7 +46,7 @@ func (r *ProfileRepo) GetProfileByUserID(userID int) (*domain.Profile, error) {
 		}
 	}
 
-	// 2️⃣ Agar cache’da bo‘lmasa, DB’dan olamiz
+
 	var profile models.Profile
 	err := r.db.Preload("User").Where("user_id = ?", userID).First(&profile).Error
 	if err != nil {
@@ -65,7 +65,7 @@ func (r *ProfileRepo) GetProfileByUserID(userID int) (*domain.Profile, error) {
 		},
 	}
 
-	// 3️⃣ Cache ga yozamiz
+	
 	if bytes, err := json.Marshal(result); err == nil {
 		_ = r.cache.Set(ctx, cacheKey, string(bytes))
 	}
@@ -73,9 +73,7 @@ func (r *ProfileRepo) GetProfileByUserID(userID int) (*domain.Profile, error) {
 	return result, nil
 }
 
-// UpdateProfile → WRITE-THROUGH
-// UpdateProfile → WRITE-THROUGH
-// UpdateProfile → WRITE-THROUGH
+
 func (r *ProfileRepo) UpdateProfile(userID int, profile *domain.Profile) error {
 	// 1️⃣ DB’ni yangilaymiz
 	err := r.db.Model(&models.Profile{}).

@@ -22,8 +22,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	// Repos
 	userRepo := mysql.NewUserRepo(db)
 	profileRepo := mysql.NewProfileRepo(db, c)
-	settingRepo := mysql.NewSettingRepo(db)
-	categoryRepo := mysql.NewCategoryRepo(db)
+	settingRepo := mysql.NewSettingRepo(db, c)
+	categoryRepo := mysql.NewCategoryRepo(db, c)
 	todoRepo := mysql.NewTodoRepository(db)
 
 	// Usecases

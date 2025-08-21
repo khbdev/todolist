@@ -34,6 +34,6 @@ admin.CreateAdmin(db)
 	r.Use(handler.CORSMiddleware())
 	handler.SetupRoutes(r, db)
 
-	log.Println("🚀 Server ishga tushdi 8081")
-	r.Run(":8081")
+	log.Println("🚀 Server ishga tushdi 8082")
+	r.Run(":8082")
 }
