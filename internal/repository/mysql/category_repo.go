@@ -22,40 +22,47 @@ func NewCategoryRepo(db *gorm.DB, cache *cache.Cache) *CategoryRepo {
 }
 
 func (r *CategoryRepo) Create(ctx context.Context, category *domain.Category) error {
-	model := &models.Category{
-		UserID: category.UserID,
-		Name:   category.Name,
-	}
+    model := &models.Category{
+        UserID: category.UserID,
+        Name:   category.Name,
+    }
 
-	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
-		return err
-	}
+    if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
+        return err
+    }
 
-	// Redisga yozish (write-through)
-	key := fmt.Sprintf("category:%d:%d", model.UserID, model.ID)
-	val, _ := json.Marshal(domain.Category{
-		ID:     model.ID,
-		UserID: model.UserID,
-		Name:   model.Name,
-	})
-	return r.cache.Set(ctx, key, string(val))
+    cat := &domain.Category{
+        ID:     model.ID,
+        UserID: model.UserID,
+        Name:   model.Name,
+    }
+
+    // 🔹 Individual cache
+    key := fmt.Sprintf("category:%d:%d", model.UserID, model.ID)
+    val, _ := json.Marshal(cat)
+    _ = r.cache.Set(ctx, key, string(val))
+
+    // 🔹 List cache update
+    listKey := fmt.Sprintf("categories:user:%d", model.UserID)
+    if val, err := r.cache.Get(ctx, listKey); err == nil {
+        var cats []*domain.Category
+        if json.Unmarshal([]byte(val), &cats) == nil {
+            cats = append(cats, cat) // yangi category qo‘shamiz
+            newVal, _ := json.Marshal(cats)
+            _ = r.cache.Set(ctx, listKey, string(newVal))
+        }
+    }
+
+    return nil
 }
 
 func (r *CategoryRepo) GetByID(ctx context.Context, id, userID int64) (*domain.Category, error) {
-	key := fmt.Sprintf("category:%d:%d", userID, id)
-
-	// Redis’dan qidirish
-	if val, err := r.cache.Get(ctx, key); err == nil {
-		var cat domain.Category
-		if err := json.Unmarshal([]byte(val), &cat); err == nil {
-			return &cat, nil
-		}
-	}
-
-	// Agar cache’da bo‘lmasa → DB’dan olish
 	var model models.Category
 	if err := r.db.WithContext(ctx).
-		Preload("Todos").
+		Select("id", "user_id", "name").
+		Preload("Todos", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id", "user_id", "category_id", "title", "description")
+		}).
 		Where("id = ? AND user_id = ?", id, userID).
 		First(&model).Error; err != nil {
 		return nil, err
@@ -72,55 +79,89 @@ func (r *CategoryRepo) GetByID(ctx context.Context, id, userID int64) (*domain.C
 		})
 	}
 
-	cat := &domain.Category{
+	return &domain.Category{
 		ID:     model.ID,
 		UserID: model.UserID,
 		Name:   model.Name,
 		Todos:  todos,
-	}
-
-	// Redisga saqlash
-	val, _ := json.Marshal(cat)
-	_ = r.cache.Set(ctx, key, string(val))
-
-	return cat, nil
+	}, nil
 }
+
+
 
 func (r *CategoryRepo) Update(ctx context.Context, category *domain.Category) error {
-	result := r.db.WithContext(ctx).
-		Model(&models.Category{}).
-		Where("id = ? AND user_id = ?", category.ID, category.UserID).
-		Updates(map[string]interface{}{"name": category.Name})
+    result := r.db.WithContext(ctx).
+        Model(&models.Category{}).
+        Where("id = ? AND user_id = ?", category.ID, category.UserID).
+        Updates(map[string]interface{}{"name": category.Name})
 
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errors.New("kategoriya topilmadi yoki ruxsat yo'q")
-	}
+    if result.Error != nil {
+        return result.Error
+    }
+    if result.RowsAffected == 0 {
+        return errors.New("kategoriya topilmadi yoki ruxsat yo'q")
+    }
 
-	// Redisni yangilash
-	key := fmt.Sprintf("category:%d:%d", category.UserID, category.ID)
-	val, _ := json.Marshal(category)
-	return r.cache.Set(ctx, key, string(val))
+    // 🔹 Individual cache update
+    key := fmt.Sprintf("category:%d:%d", category.UserID, category.ID)
+    val, _ := json.Marshal(category)
+    _ = r.cache.Set(ctx, key, string(val))
+
+    // 🔹 List cache update
+    listKey := fmt.Sprintf("categories:user:%d", category.UserID)
+    if val, err := r.cache.Get(ctx, listKey); err == nil {
+        var cats []*domain.Category
+        if json.Unmarshal([]byte(val), &cats) == nil {
+            for i, c := range cats {
+                if c.ID == category.ID {
+                    cats[i] = category // yangilash
+                    break
+                }
+            }
+            newVal, _ := json.Marshal(cats)
+            _ = r.cache.Set(ctx, listKey, string(newVal))
+        }
+    }
+
+    return nil
 }
+
 
 func (r *CategoryRepo) Delete(ctx context.Context, id, userID int64) error {
-	result := r.db.WithContext(ctx).
-		Where("id = ? AND user_id = ?", id, userID).
-		Delete(&models.Category{})
+    result := r.db.WithContext(ctx).
+        Where("id = ? AND user_id = ?", id, userID).
+        Delete(&models.Category{})
 
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errors.New("kategoriya topilmadi yoki ruxsat yo'q")
-	}
+    if result.Error != nil {
+        return result.Error
+    }
+    if result.RowsAffected == 0 {
+        return errors.New("kategoriya topilmadi yoki ruxsat yo'q")
+    }
 
-	// Redisdan o‘chirish
-	key := fmt.Sprintf("category:%d:%d", userID, id)
-	return r.cache.Delete(ctx, key)
+    // 🔹 Individual cache o‘chir
+    key := fmt.Sprintf("category:%d:%d", userID, id)
+    _ = r.cache.Delete(ctx, key)
+
+    // 🔹 List cache update (o‘chirish)
+    listKey := fmt.Sprintf("categories:user:%d", userID)
+    if val, err := r.cache.Get(ctx, listKey); err == nil {
+        var cats []*domain.Category
+        if json.Unmarshal([]byte(val), &cats) == nil {
+            var newCats []*domain.Category
+            for _, c := range cats {
+                if c.ID != id {
+                    newCats = append(newCats, c)
+                }
+            }
+            newVal, _ := json.Marshal(newCats)
+            _ = r.cache.Set(ctx, listKey, string(newVal))
+        }
+    }
+
+    return nil
 }
+
 
 func (r *CategoryRepo) GetAllByUserID(ctx context.Context, userID int64) ([]*domain.Category, error) {
 	key := fmt.Sprintf("categories:user:%d", userID)
