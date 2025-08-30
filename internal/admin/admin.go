@@ -26,7 +26,7 @@ func CreateAdmin(db *gorm.DB) {
         return
     }
 
-    // Passwordni hash qilish pkg/hash yordamida
+
     hashedPassword, err := hash.HashPassword(adminPassword)
     if err != nil {
         log.Fatalf("Failed to hash admin password: %v", err)
