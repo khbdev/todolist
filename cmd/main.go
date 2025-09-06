@@ -7,14 +7,14 @@ import (
 	"todolist/internal/config"
 	"todolist/internal/handler"
 	"todolist/internal/repository/models"
+	"todolist/pkg/rabbitmq"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	
-	config.LoadEnv()
 
+	config.LoadEnv()
 
 	db, err := config.ConnectGormDB()
 	if err != nil {
@@ -33,19 +33,20 @@ func main() {
 		log.Fatalf("AutoMigrate Amalga oshmadi: %v", err)
 	}
 
-
 	admin.CreateAdmin(db)
 
 	r := gin.Default()
 
-
 	r.Use(handler.CORSMiddleware())
 
-reteLimiting := handler.NewRedisRateLimiter(config.NewRedis())
-
-r.Use(reteLimiting.RateLimit())
+	reteLimiting := handler.NewRedisRateLimiter(config.NewRedis())
+	r.Use(reteLimiting.RateLimit())
 
 	handler.SetupRoutes(r, db)
+
+	// 🔹 RabbitMQ ulanish va consumer ishga tushurish
+	rmq := rabbitmq.GetInstance()  // singleton
+	go rmq.Consume()               // goroutine orqali email consumer
 
 	log.Println("🚀 Server ishga tushdi 8082")
 	r.Run(":8082")

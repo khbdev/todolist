@@ -2,9 +2,12 @@ package usecase
 
 import (
 	"errors"
+	"log"
 
 	"todolist/internal/domain"
 	"todolist/pkg/hash"
+	"todolist/pkg/rabbitmq"
+
 	"todolist/pkg/token"
 )
 
@@ -24,7 +27,7 @@ func NewUserUsecase(userRepo domain.UserRepository, profileRepo domain.ProfileRe
 }
 
 func (uc *UserUsecase) Register(user *domain.User) error {
-    // Agar role berilmagan bo‘lsa, default = user
+    // Role default
     if user.Role == "" {
         user.Role = "user"
     }
@@ -49,8 +52,7 @@ func (uc *UserUsecase) Register(user *domain.User) error {
         Username:  "khbdev",
         Image:     "rasm.jpg",
     }
-    err = uc.profileRepo.CreateProfile(user.ID, profile)
-    if err != nil {
+    if err := uc.profileRepo.CreateProfile(user.ID, profile); err != nil {
         return err
     }
 
@@ -59,13 +61,25 @@ func (uc *UserUsecase) Register(user *domain.User) error {
         BgColor:   "#FFD701",
         TextColor: "#FFD700",
     }
-    err = uc.settingRepo.CreateSetting(user.ID, setting)
-    if err != nil {
+    if err := uc.settingRepo.CreateSetting(user.ID, setting); err != nil {
         return err
+    }
+
+    // Email job yaratish
+   job := rabbitmq.EmailJob{
+        Email: user.Email,
+        Retry: 0,
+    }
+
+    rmq := rabbitmq.GetInstance() // singleton orqali ulanish
+    if err := rmq.Publish("signup", job); err != nil {
+        log.Println("RabbitMQ publish xatosi:", err)
+     
     }
 
     return nil
 }
+
 
 
 
