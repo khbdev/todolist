@@ -8,7 +8,7 @@ import (
 	"todolist/internal/handler"
 	"todolist/internal/repository/models"
 
-	"todolist/pkg/cronjob"
+	
 	"todolist/pkg/rabbitmq"
 
 	"github.com/gin-gonic/gin"
@@ -51,8 +51,7 @@ func main() {
 	
 	rmq := rabbitmq.GetInstance()  
 	go rmq.Consume()         
-		cronjob.StartWorker()
-	go cronjob.RunHourlyCronJob(db)
+
 	
 
 	log.Println("🚀 Server ishga tushdi 8082")
