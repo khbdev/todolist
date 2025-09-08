@@ -7,6 +7,8 @@ import (
 	"todolist/internal/config"
 	"todolist/internal/handler"
 	"todolist/internal/repository/models"
+
+	"todolist/pkg/cronjob"
 	"todolist/pkg/rabbitmq"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +23,7 @@ func main() {
 		log.Fatalf("DB ulanishda xatolik: %v", err)
 	}
 
-	// AutoMigrate
+	
 	err = config.AutoMigrate(db,
 		&models.User{},
 		&models.Profile{},
@@ -35,6 +37,8 @@ func main() {
 
 	admin.CreateAdmin(db)
 
+
+
 	r := gin.Default()
 
 	r.Use(handler.CORSMiddleware())
@@ -44,9 +48,12 @@ func main() {
 
 	handler.SetupRoutes(r, db)
 
-	// 🔹 RabbitMQ ulanish va consumer ishga tushurish
-	rmq := rabbitmq.GetInstance()  // singleton
-	go rmq.Consume()               // goroutine orqali email consumer
+	
+	rmq := rabbitmq.GetInstance()  
+	go rmq.Consume()         
+		cronjob.StartWorker()
+	go cronjob.RunHourlyCronJob(db)
+	
 
 	log.Println("🚀 Server ishga tushdi 8082")
 	r.Run(":8082")
