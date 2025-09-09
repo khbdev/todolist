@@ -8,7 +8,7 @@ import (
 	"todolist/internal/handler"
 	"todolist/internal/repository/models"
 
-	
+
 	"todolist/pkg/rabbitmq"
 
 	"github.com/gin-gonic/gin"
