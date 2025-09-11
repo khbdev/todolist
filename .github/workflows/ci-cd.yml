@@ -33,7 +33,7 @@ jobs:
         run: go mod tidy
 
       - name: Build main.go
-        run: go build -o main ./todolist/cmd/main.go
+        run: go build -o main ./cmd/main.go
 
       # 4. Docker login qilish
       - name: Log in to Docker Hub
