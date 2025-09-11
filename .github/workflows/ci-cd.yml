@@ -11,10 +11,10 @@ on:
 jobs:
   build-and-push:
     name: Build & Push Docker
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30   # timeout 30 daqiqa
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
         go-version: [1.24, 1.25]
 
     steps:
@@ -28,12 +28,9 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
-      # 3. Go modulni yangilash va build qilish
+      # 3. Go modulni yangilash
       - name: Install dependencies
         run: go mod tidy
-
-      - name: Build main.go
-        run: go build -o main ./cmd/main.go
 
       # 4. Docker login qilish
       - name: Log in to Docker Hub
