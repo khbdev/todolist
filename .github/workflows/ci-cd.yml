@@ -1,0 +1,51 @@
+name: Go CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        go-version: [1.24, 1.25]
+
+    steps:
+      # 1. Kodni checkout qilish
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Go versiyasini o‘rnatish
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      # 3. Go modulni yangilash va build qilish
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Build main.go
+        run: go build -o main ./todolist/cmd/main.go
+
+      # 4. Docker login qilish
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      # 5. Docker image build
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/todolist:latest .
+
+      # 6. Docker image push qilish
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/todolist:latest
