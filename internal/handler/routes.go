@@ -8,6 +8,7 @@ import (
 	"todolist/internal/repository/mysql"
 	"todolist/internal/usecase"
 	"todolist/pkg/cache"
+	"todolist/pkg/notifactions"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -18,13 +19,17 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	r.Use(CORSMiddleware())
 	rdb := config.NewRedis()
 	c := cache.NewCache(rdb)
+	notifier := notifactions.NewNotifier(rdb)
+subscriber := notifactions.NewSubscriber(rdb)
+
+
 // end
 	// Repos
 	userRepo := mysql.NewUserRepo(db)
 	profileRepo := mysql.NewProfileRepo(db, c)
 	settingRepo := mysql.NewSettingRepo(db, c)
 	categoryRepo := mysql.NewCategoryRepo(db, c)
-	todoRepo := mysql.NewTodoRepository(db, c)
+	todoRepo := mysql.NewTodoRepository(db, c, notifier)
 
 	// Usecases
 	userUsecase := usecase.NewUserUsecase(userRepo, profileRepo, settingRepo)
@@ -47,6 +52,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "golang todo-app"})
 	})
+	r.GET("/todosws", func(c *gin.Context) {
+    subscriber.HandleWS(c.Writer, c.Request)
+})
 
 	r.POST("/register", userHandler.Register)
 	r.POST("/login", userHandler.Login)

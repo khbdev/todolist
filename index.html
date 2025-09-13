@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Todos Notifications</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    #messages {
+      list-style: none;
+      padding: 0;
+      margin: 20px auto;
+      max-width: 500px;
+    }
+
+    #messages li {
+      background: #fff;
+      margin: 8px 0;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-size: 15px;
+    }
+
+    .created { border-left: 6px solid #22c55e; }
+    .updated { border-left: 6px solid #3b82f6; }
+    .deleted { border-left: 6px solid #ef4444; }
+  </style>
+</head>
+<body>
+  <h2>📌 Todos Notifications</h2>
+  <ul id="messages"></ul>
+
+  <script>
+    const socket = new WebSocket("ws://localhost:8082/todosws");
+
+    socket.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      const li = document.createElement("li");
+      let text = "";
+
+      if (msg.action === "created") {
+        text = `✅ Yangi todo yaratdingiz: ${msg.data.title}`;
+        li.classList.add("created");
+      } else if (msg.action === "updated") {
+        text = `✏️ Todo yangilandi: ${msg.data.title}`;
+        li.classList.add("updated");
+      } else if (msg.action === "deleted") {
+        text = `🗑️ Todo o‘chirildi: `;
+        li.classList.add("deleted");
+      }
+
+      li.textContent = text;
+      document.getElementById("messages").appendChild(li);
+    };
+  </script>
+</body>
+</html>

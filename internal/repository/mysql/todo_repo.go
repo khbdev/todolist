@@ -10,6 +10,7 @@ import (
 	"todolist/internal/domain"
 	"todolist/internal/repository/models"
 	"todolist/pkg/cache"
+	"todolist/pkg/notifactions"
 
 	"gorm.io/gorm"
 )
@@ -17,13 +18,16 @@ import (
 type todoRepository struct {
 	db    *gorm.DB
 	cache *cache.Cache
+	notifier *notifactions.Notifier
 }
 
 // NewTodoRepository - DB ham, cache ham qabul qiladi
-func NewTodoRepository(db *gorm.DB, cache *cache.Cache) domain.TodoRepository {
+func NewTodoRepository(db *gorm.DB, cache *cache.Cache, notifier *notifactions.Notifier) domain.TodoRepository {
 	return &todoRepository{
 		db:    db,
 		cache: cache,
+		notifier: notifier,
+		
 	}
 }
 
@@ -51,6 +55,8 @@ func (r *todoRepository) CreateTodo(todo domain.Todo) (int64, error) {
 	// boshqa cachelarni ham tozalash
 	r.cache.Delete(ctx, fmt.Sprintf("todo:%d", modelTodo.ID))
 	r.cache.Delete(ctx, fmt.Sprintf("todos:user:%d", todo.UserID))
+
+		_ = r.notifier.Publish(context.Background(), "created", todo)
 
 	return modelTodo.ID, nil
 }
@@ -160,6 +166,7 @@ func (r *todoRepository) UpdateTodo(todo domain.Todo) error {
 	r.cache.Delete(ctx, fmt.Sprintf("todo:%d", todo.ID))
 	r.cache.Delete(ctx, fmt.Sprintf("todos:user:%d", todo.UserID))
 
+	_ = r.notifier.Publish(context.Background(), "updated", todo)
 	return nil
 }
 
@@ -183,6 +190,8 @@ func (r *todoRepository) DeleteTodo(id int64) error {
 	r.cache.Delete(ctx, fmt.Sprintf("category:%d:%d", modelTodo.UserID, modelTodo.CategoryID))
 	r.cache.Delete(ctx, fmt.Sprintf("todo:%d", id))
 	r.cache.Delete(ctx, fmt.Sprintf("todos:user:%d", modelTodo.UserID))
+
+	_ = r.notifier.Publish(context.Background(), "deleted", map[string]any{"id": id})
 
 	return nil
 }
