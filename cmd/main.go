@@ -23,9 +23,7 @@ func main() {
 		log.Fatalf("DB ulanishda xatolik: %v", err)
 	}
 
-	cronjob.InitConnection(db)
 
-	cronjob.RunCronJob()
 
 	err = config.AutoMigrate(db,
 		&models.User{},
@@ -55,8 +53,12 @@ func main() {
 	rmq := rabbitmq.GetInstance()  
 	go rmq.Consume()         
 
+		cronjob.InitConnection(db)
+
+	go cronjob.RunCronJob()
 	
 
 	log.Println("🚀 Server ishga tushdi 8082")
 	r.Run(":8082")
+
 }

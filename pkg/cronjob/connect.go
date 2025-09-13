@@ -23,7 +23,7 @@ func InitConnection(db *gorm.DB) {
 	})
 
 	
-	Interval = 5 * time.Second
+	Interval = 15 * time.Second
 
 	log.Println("✅ DB va Redis ulanishi tayyor, cron interval:", Interval)
 }
