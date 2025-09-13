@@ -8,7 +8,7 @@ import (
 	"todolist/internal/handler"
 	"todolist/internal/repository/models"
 
-
+	"todolist/pkg/cronjob"
 	"todolist/pkg/rabbitmq"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +23,10 @@ func main() {
 		log.Fatalf("DB ulanishda xatolik: %v", err)
 	}
 
-	
+	cronjob.InitConnection(db)
+
+	cronjob.RunCronJob()
+
 	err = config.AutoMigrate(db,
 		&models.User{},
 		&models.Profile{},
