@@ -32,6 +32,6 @@ func (n *Notifier) Publish(ctx context.Context, action string, data interface{})
 		return err
 	}
 
-	channel := "todos" // bitta umumiy kanal
+	channel := "todos" 
 	return n.rdb.Publish(ctx, channel, payload).Err()
 }

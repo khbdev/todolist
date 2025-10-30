@@ -46,7 +46,7 @@ func SendEmail(userID int, email, todo string) error {
 	m.SetHeader("From", smtpEmail)
 	m.SetHeader("To", email)
 	m.SetHeader("Subject", "Todolistdan Xabar 📌")
-	m.SetBody("text/plain", fmt.Sprintf("Salom! \n\nSiz uchun yangi vazifa: %s\n\nUserID: %d", todo))
+	m.SetBody("text/plain", fmt.Sprintf("Salom! \n\nSiz uchun yangi vazifa %s", todo))
 
 	d := gomail.NewDialer(smtpHost, port, smtpEmail, smtpPass)
 
